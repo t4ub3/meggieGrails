@@ -3,5 +3,5 @@ package meggie
 class Record {
     User driver
     int mileage
-    Date date    
+    Date date = new Date()
 }
