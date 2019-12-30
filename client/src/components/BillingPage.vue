@@ -3,11 +3,20 @@
         <div class="overlay" @click.stop>
             <overlay-header :text="'Abrechnung'"></overlay-header>
             <div class="overlay_body">
-                <div class="text">Zuletzt bezahlt bei {{lastPaidMileage}} km.</div>
+                <!-- <div class="text">Zuletzt bezahlt bei {{lastPaidMileage}} km.</div> -->
+                <template v-for="user in users">
+                  <input :key="'input' + user.id" class="text" :id="`radio-${user.id}`" name="radio-driven-last" type="radio" :value="user.id" v-model.number="driver"/>
+                  <label :key="'label' + user.id" class="text" :for="`radio-${user.id}`">{{ user.name }}</label>
+                </template>
+                <br><br>
                 <div class="text">
-                    Ich habe für
+                    Ich habe
                     <br>
-                    <input id="input-refuel" type="number" step="0.01" v-model="refuel"/> €
+                    bei
+                    <input id="input-refuel-mileage" type="number" v-model.number="refuelMileage">
+                    km für
+                    <br>
+                    <input id="input-refuel-amount" type="number" step="0.01" v-model.number="refuelAmount"/> €
                     <br>
                     getankt.
                 </div>
@@ -23,7 +32,7 @@
 </template>
 
 <script>
-import {getLastPaidMileage, setLastPaidMileage, readDriveHistory, addRefuel, getRefuelData, clearRefuelData} from '../services/dbAccess.js'
+import {setLastPaidMileage, addRefuel, getRefuelData, clearRefuelData} from '../services/dbAccess.js'
 import OverlayHeader from './OverlayHeader'
 
 export default {
@@ -31,40 +40,50 @@ export default {
 
   components: {OverlayHeader},
 
+  props: {
+    drivingHistory: Array,
+    users: Object
+  },
+
   data () {
     return {
-      costs: 0,
-      lastPaidMileage: 0,
-      driveHistory: [],
-      refuel: 0,
+      driver: 0,
+      refuelData: [],
+      refuelAmount: 0,
+      refuelMileage: 0,
       submitButtonText: 'Ich habe bezahlt'
+    }
+  },
+
+  computed: {
+    costs () {
+      debugger
+      let billedMileage = this.drivingHistory.reduce((currentSum, drivingRecord) => {
+        if (drivingRecord.driver.id === this.driver && drivingRecord.isPending) {
+          return currentSum + drivingRecord.distance
+        }
+        return currentSum
+      }, 0)
+      let summedRefuelValue = this.refuelData.reduce((currentRefuelSum, fuelRecord) => {
+        if (fuelRecord.driver.id === this.driver && fuelRecord.isPending) {
+          return currentRefuelSum + fuelRecord.amount
+        }
+        return currentRefuelSum
+      }, 0)
+      return parseFloat(Math.round(100 * (billedMileage * 0.25 - summedRefuelValue)) / 100).toFixed(2)
     }
   },
 
   methods: {
     async setMileageAsPaid () {
-      let lastPaidMileage = this.driveHistory[this.driveHistory.length - 1].mileage
+      let lastPaidMileage = this.drivingHistory[this.drivingHistory.length - 1].mileage
       await setLastPaidMileage(lastPaidMileage)
       this.lastPaidMileage = lastPaidMileage // Wert aktualisieren, ohne neu aus LS zu laden
     },
 
-    async calcCosts () {
-      let lastPaidMileage = this.lastPaidMileage
-      let filteredHistory = this.driveHistory.filter(function (currentDriveSession) {
-        return (currentDriveSession.driver === 'Stoffel' && currentDriveSession.mileage > lastPaidMileage)
-      })
-      let billedMileage = filteredHistory.reduce(function (currentSum, currentDriveSession) {
-        return currentSum + currentDriveSession.distance
-      }, 0)
-      let summedRefuelValue = (await getRefuelData()).reduce(function (currentRefuel, currentData) {
-        return currentRefuel + currentData
-      }, 0)
-      return parseFloat(Math.round(100 * (billedMileage * 0.25 - summedRefuelValue)) / 100).toFixed(2)
-    },
-
     async refuelHandler () {
-      await addRefuel(this.refuel)
-      this.costs = await this.calcCosts()
+      await addRefuel(this.refuelAmount, this.driver, this.refuelMileage)
+      this.refuelData = await getRefuelData()
     },
 
     async payedHandler () {
@@ -77,9 +96,7 @@ export default {
   },
 
   async created () {
-    this.lastPaidMileage = await getLastPaidMileage()
-    this.driveHistory = await readDriveHistory()
-    this.costs = await this.calcCosts()
+    this.refuelData = await getRefuelData()
   }
 }
 </script>

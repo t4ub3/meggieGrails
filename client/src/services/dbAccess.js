@@ -1,7 +1,7 @@
 import axios from 'axios'
 const DB_DRIVING_RECORDS = 'driving-record'
 const DB_LAST_PAID_MILEAGE = 'lastPaidMileage'
-const DB_REFUEL_DATA = 'refuelData'
+const DB_FUEL_RECORD = 'fuel-record'
 const ROOT_URL = 'http://localhost:8080/'
 
 export async function addMileageRecord (driver, mileage, distance) {
@@ -39,25 +39,26 @@ export async function getLastPaidMileage () {
   }
 }
 
-export async function addRefuel (newRefuel) {
-  let refuelData = await getRefuelData()
-  refuelData.push(parseFloat(newRefuel))
-  await axios.post(ROOT_URL + 'update-' + DB_REFUEL_DATA, {
-    'refuelData': JSON.stringify(refuelData)
+export async function addRefuel (amount, driver, mileage) {
+  await axios.post(ROOT_URL + DB_FUEL_RECORD, {
+    amount: amount,
+    driver: driver,
+    isPending: true,
+    mileage: mileage
   })
 }
 
 export async function getRefuelData () {
-  let refuelData = (await axios.get(ROOT_URL + DB_REFUEL_DATA)).data
+  let refuelData = (await axios.get(ROOT_URL + DB_FUEL_RECORD)).data
   if (refuelData !== null) {
-    return JSON.parse(refuelData)
+    return refuelData
   } else {
     return []
   }
 }
 
 export async function clearRefuelData () {
-  await axios.post(ROOT_URL + 'update-' + DB_REFUEL_DATA, {
+  await axios.post(ROOT_URL + 'update-' + DB_FUEL_RECORD, {
     'refuelData': JSON.stringify([])
   })
 }

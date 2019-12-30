@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <history-page :drivingHistory="drivingHistory" :users="users"/>
-    <billing-page v-if="currentPage == 'BillingPage'" @click.native="currentPage = 'HistoryPage'" @close="backToHistory"/>
+    <billing-page :drivingHistory="drivingHistory" :users="users" v-if="currentPage == 'BillingPage'" @click.native="currentPage = 'HistoryPage'" @close="backToHistory"/>
     <mileage-page :drivingHistory="drivingHistory" :users="users" v-if="currentPage == 'MileagePage'" @click.native="currentPage = 'HistoryPage'" @close="backToHistory"/>
     <FixedOverlay @select-page="showNewPage($event)" :currentPage="currentPage"></FixedOverlay>
   </div>
