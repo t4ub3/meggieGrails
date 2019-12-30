@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <history-page :drivingHistory="drivingHistory"/>
+    <history-page :drivingHistory="drivingHistory" :users="users"/>
     <billing-page v-if="currentPage == 'BillingPage'" @click.native="currentPage = 'HistoryPage'" @close="backToHistory"/>
     <mileage-page v-if="currentPage == 'MileagePage'" @click.native="currentPage = 'HistoryPage'" @close="backToHistory"/>
     <FixedOverlay @select-page="showNewPage($event)" :currentPage="currentPage"></FixedOverlay>
@@ -13,7 +13,7 @@ import HistoryPage from './components/HistoryPage.vue'
 import BillingPage from './components/BillingPage.vue'
 import FixedOverlay from './components/FixedOverlay.vue'
 import {createPageMap} from './utils/maps.js'
-import {readDriveHistory} from './services/dbAccess'
+import {readDriveHistory, getUsers} from './services/dbAccess'
 
 export default {
   name: 'app',
@@ -28,7 +28,8 @@ export default {
     return {
       currentPage: '',
       pageMap: createPageMap(),
-      drivingHistory: []
+      drivingHistory: [],
+      users: {}
     }
   },
 
@@ -43,6 +44,7 @@ export default {
   },
 
   async created () {
+    this.users = await getUsers()
     this.drivingHistory = await readDriveHistory()
   }
 }

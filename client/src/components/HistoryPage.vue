@@ -2,9 +2,11 @@
     <div class="box">
         <table class="table">
             <tr class="row" v-for="drivingRecord in drivingHistoryReverse" :key="drivingRecord.mileage">
-                <td class="column leftColumn">{{drivingRecord.mileage}} km</td>
+                <td>{{ formatDate(drivingRecord.date) }}</td>
                 <td class="column">-</td>
-                <td class="column rightColumn">{{drivingRecord.driver}}</td>
+                <td class="column leftColumn">{{ drivingRecord.mileage }} km</td>
+                <td class="column">-</td>
+                <td class="column rightColumn">{{ users[drivingRecord.driver.id].name }}</td>
             </tr>
         </table>
     </div>
@@ -16,12 +18,19 @@ export default {
   name: 'HistoryPage',
 
   props: {
-    drivingHistory: Array
+    drivingHistory: Array,
+    users: Object
   },
 
   computed: {
     drivingHistoryReverse () {
       return [...this.drivingHistory].reverse()
+    }
+  },
+  methods: {
+    formatDate (date) {
+      let newDate = new Date(date)
+      return newDate.getDate() + '.' + (newDate.getMonth() + 1) + '.' + newDate.getFullYear()
     }
   }
 }

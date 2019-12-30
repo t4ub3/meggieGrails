@@ -1,5 +1,5 @@
 import axios from 'axios'
-const DB_DRIVEHISTORY = 'driving-record'
+const DB_DRIVING_RECORDS = 'driving-record'
 const DB_LAST_PAID_MILEAGE = 'lastPaidMileage'
 const DB_REFUEL_DATA = 'refuelData'
 const ROOT_URL = 'http://localhost:8080/'
@@ -13,11 +13,11 @@ export async function addMileageRecord (driver, mileage) {
     distance: calcDistance(mileage, driveHistory)
   }
 
-  await axios.post(ROOT_URL + DB_DRIVEHISTORY, driveSession)
+  await axios.post(ROOT_URL + DB_DRIVING_RECORDS, driveSession)
 }
 
 export async function readDriveHistory () {
-  let dbHistory = (await axios.get(ROOT_URL + DB_DRIVEHISTORY)).data
+  let dbHistory = (await axios.get(ROOT_URL + DB_DRIVING_RECORDS)).data
   if (dbHistory !== null) {
     return dbHistory
   } else {
@@ -70,6 +70,15 @@ export async function clearRefuelData () {
   await axios.post(ROOT_URL + 'update-' + DB_REFUEL_DATA, {
     'refuelData': JSON.stringify([])
   })
+}
+
+export async function getUsers () {
+  let usersAsArray = (await axios.get(ROOT_URL + 'user')).data
+  let users = {}
+  usersAsArray.forEach(user => {
+    users[user.id] = user
+  })
+  return users
 }
 
 function calcDistance (newMileage, driveHistory) {
