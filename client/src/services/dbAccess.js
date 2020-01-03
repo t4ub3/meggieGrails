@@ -63,6 +63,20 @@ export async function clearRefuelData () {
   })
 }
 
+export async function setRecordsAsPaid (records, driver, type) {
+  records.forEach(async record => {
+    if (record.driver.id === driver && record.isPending) {
+      record.isPending = false
+      let id = record.id
+      if (type === 'fuelRecord') {
+        await axios.put(ROOT_URL + DB_FUEL_RECORD + '/' + id, record)
+      } else if (type === 'drivingRecord') {
+        await axios.put(ROOT_URL + DB_DRIVING_RECORDS + '/' + id, record)
+      }
+    }
+  })
+}
+
 export async function getUsers () {
   let usersAsArray = (await axios.get(ROOT_URL + 'user')).data
   let users = {}
