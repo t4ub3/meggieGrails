@@ -22,7 +22,7 @@
     "core-js": "^2.6.5",
     "vue": "^2.6.10",
     "vue-mq": "^1.0.1",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "vue-router": "^3.0.1"
   },
   "devDependencies": {
